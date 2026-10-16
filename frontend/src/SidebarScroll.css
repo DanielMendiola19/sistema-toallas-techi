@@ -1,0 +1,19 @@
+/* Barra lateral con desplazamiento independiente, sin alterar la navegación. */
+.sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #ac899e transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: #ac899e; border-radius: 999px; }
+.sidebar > .logo,
+.sidebar > .sidebar-label,
+.sidebar > nav,
+.sidebar > .sidebar-bottom { flex-shrink: 0; }
+.sidebar > .sidebar-bottom { padding-bottom: 14px; }
+@media (max-width:850px) {
+  .sidebar { height: 100dvh; max-height: 100dvh; overflow-y: auto; }
+}

@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Variables privadas y credenciales
+.env
+.env.*
+!.env.example
+
+# Compilaciones
+dist/
+build/
+
+# Registros
+*.log
+
+# Respaldos de PostgreSQL
+*.dump
+*.backup
+*.sql.gz
+
+# Archivos temporales
+.DS_Store
+Thumbs.db
