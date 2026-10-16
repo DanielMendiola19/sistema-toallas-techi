@@ -1,0 +1,444 @@
+
+/* =========================================
+   TOALLAS TECHI - INVENTARIO
+   Filtros, estados y fotografías
+   ========================================= */
+
+/* =========================================
+   FILTROS RÁPIDOS
+   ========================================= */
+
+.inventory-page .inventory-quickfilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 16px 0 18px;
+}
+
+.inventory-page .inventory-filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #e7d8e1;
+  border-radius: 11px;
+  background: #faf6f8;
+  color: #745668;
+  padding: 10px 15px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background .15s,
+    border-color .15s;
+}
+
+.inventory-page .inventory-filter-button:hover:not(.is-active) {
+  background: #f4e9ef;
+  border-color: #cdaebf;
+}
+
+.inventory-page .inventory-filter-button.is-active {
+  background: #956f87;
+  border-color: #956f87;
+  color: #fff;
+}
+
+/* CONTADORES */
+
+.inventory-page .inventory-filter-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 5px;
+  border-radius: 20px;
+  background: #eadce5;
+  color: #674c5c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.inventory-page
+.inventory-filter-button.is-active
+.inventory-filter-count {
+  background: rgba(255, 255, 255, .22);
+  color: #fff;
+}
+
+/* =========================================
+   FILAS AGOTADAS
+   ========================================= */
+
+.inventory-page .inventory-table tr.inventory-row-out td {
+  background: #fff3f4;
+}
+
+.inventory-page .inventory-table tr.inventory-row-out:hover td {
+  background: #ffe8eb;
+}
+
+/* =========================================
+   ESTADOS DE INVENTARIO
+   ========================================= */
+
+.inventory-page .inventory-stock-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* DISPONIBLE - VERDE */
+
+.inventory-page .inventory-stock-available {
+  background: #e4f5e9;
+  color: #18784c;
+}
+
+/* STOCK BAJO - NARANJA */
+
+.inventory-page .inventory-stock-low {
+  background: #fff0d6;
+  color: #955000;
+}
+
+/* AGOTADO - ROJO */
+
+.inventory-page .inventory-stock-out {
+  background: #ffdfe3;
+  color: #af263b;
+}
+
+/* SIN RESULTADOS */
+
+.inventory-page .inventory-empty {
+  padding: 22px 14px;
+  color: #8d7885;
+  text-align: center;
+  font-size: 13px;
+}
+
+/* =========================================
+   MINIATURAS DE FOTOGRAFÍAS
+   ========================================= */
+
+.inventory-page .inventory-photo-button,
+.inventory-page .inventory-photo-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+}
+
+.inventory-page .inventory-photo-button {
+  padding: 3px;
+  border: 1px solid #e8dce3;
+  background: #fff;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.inventory-page .inventory-photo-button:hover {
+  border-color: #ac829d;
+  box-shadow:
+    0 3px 12px rgba(98, 61, 84, .14);
+}
+
+.inventory-page .inventory-product-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 7px;
+}
+
+.inventory-page .inventory-photo-placeholder {
+  border: 1px dashed #dfd2db;
+  background: #faf7f9;
+  color: #baa7b3;
+}
+
+/* =========================================
+   EDITOR DE FOTOGRAFÍA
+   ========================================= */
+
+.inventory-photo-editor {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #ecdee6;
+  border-radius: 14px;
+  background: #fcf9fb;
+}
+
+.inventory-photo-editor-head {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-bottom: 15px;
+}
+
+.inventory-photo-editor-head strong {
+  color: #624b5a;
+  font-size: 14px;
+}
+
+.inventory-photo-editor-head small {
+  color: #917c8a;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.inventory-photo-editor-content {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+
+/* VISTA PREVIA */
+
+.inventory-photo-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 132px;
+  width: 132px;
+  height: 132px;
+  padding: 7px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px dashed #d8c4d1;
+  background: #fff;
+  color: #a08b99;
+}
+
+.inventory-photo-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.inventory-photo-preview span {
+  font-size: 12px;
+  text-align: center;
+}
+
+/* BOTONES */
+
+.inventory-photo-editor-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.inventory-upload-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 11px 15px;
+  border-radius: 9px;
+  background: #956f87;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.inventory-upload-label:hover {
+  background: #815b74;
+}
+
+.inventory-upload-label input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.inventory-remove-photo {
+  border: none;
+  background: transparent;
+  color: #b34656;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.inventory-remove-photo:hover {
+  color: #8d2938;
+}
+
+.inventory-photo-editor-actions p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* =========================================
+   VISTA AMPLIADA DE FOTOGRAFÍA
+   ========================================= */
+
+.inventory-photo-lightbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  max-height: 65vh;
+  min-height: 180px;
+  overflow: auto;
+  border-radius: 12px;
+  background: #faf7f9;
+}
+
+.inventory-photo-lightbox img {
+  display: block;
+  max-width: 100%;
+  max-height: 58vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* =========================================
+   ACCESIBILIDAD
+   ========================================= */
+
+.inventory-page .inventory-filter-button:focus-visible,
+.inventory-page .inventory-photo-button:focus-visible {
+  outline: 3px solid #bd91ad;
+  outline-offset: 3px;
+}
+
+.inventory-upload-label:focus-within {
+  outline: 3px solid #bd91ad;
+  outline-offset: 3px;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media (max-width: 600px) {
+  .inventory-page .inventory-quickfilters {
+    gap: 7px;
+  }
+
+  .inventory-page .inventory-filter-button {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .inventory-page .inventory-photo-button,
+  .inventory-page .inventory-photo-placeholder {
+    width: 46px;
+    height: 46px;
+  }
+
+  .inventory-photo-editor {
+    padding: 12px;
+  }
+
+  .inventory-photo-editor-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inventory-photo-preview {
+    flex: none;
+    width: 100%;
+    height: 170px;
+  }
+
+  .inventory-photo-editor-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .inventory-upload-label {
+    width: 100%;
+  }
+
+  .inventory-remove-photo {
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inventory-page .inventory-filter-button,
+  .inventory-upload-label {
+    transition: none;
+  }
+}
+
+
+
+
+
+
+/* =========================================
+   FOTOGRAFÍAS MÁS GRANDES EN INVENTARIO
+   ========================================= */
+
+.inventory-page .inventory-photo-button,
+.inventory-page .inventory-photo-placeholder {
+  width: 100px;
+  height: 100px;
+  min-width: 100px;
+  border-radius: 12px;
+}
+
+.inventory-page .inventory-photo-button {
+  padding: 3px;
+  background: #ffffff;
+  border: 1px solid #e8dce3;
+  overflow: hidden;
+}
+
+.inventory-page .inventory-product-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 9px;
+  transition: transform 0.2s ease;
+}
+
+.inventory-page .inventory-photo-button:hover
+.inventory-product-photo {
+  transform: scale(1.05);
+}
+
+/* Espaciado de la tabla */
+
+.inventory-page .inventory-table td {
+  vertical-align: middle;
+}
+
+/* Tamaño adaptado para celulares */
+
+@media (max-width: 600px) {
+  .inventory-page .inventory-photo-button,
+  .inventory-page .inventory-photo-placeholder {
+    width: 76px;
+    height: 76px;
+    min-width: 76px;
+  }
+}
