@@ -371,6 +371,12 @@ export default function App() {
   // Filtros de inventario.
   const [inventoryFilter, setInventoryFilter] =
     useState<InventoryFilter>('all');
+  const [inventoryPage, setInventoryPage] = useState(1);
+  const [priceQuery, setPriceQuery] = useState('');
+  const [pricePickerOpen, setPricePickerOpen] = useState(false);
+  const [profileModal, setProfileModal] = useState(false);
+  const [profileDraft, setProfileDraft] = useState({name:'', email:'', currentPassword:'', password:''});
+  const [showProfilePassword, setShowProfilePassword] = useState(false);
 
   // Nuevos estados de fotografías.
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -387,7 +393,8 @@ export default function App() {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    role: 'seller' as 'seller' | 'admin'
   });
 
   const [users, setUsers] = useState<User[]>([]);
@@ -749,6 +756,7 @@ export default function App() {
     e.preventDefault();
 
     if (user?.role === 'admin') {
+      if (!selected || !/^\d+(\.\d{1,2})?$/.test(newPrice)) {setError('Selecciona un producto e ingresa un precio válido');return;}
       setConfirmPrice(true);
       return;
     }
@@ -849,7 +857,7 @@ export default function App() {
         body: JSON.stringify(newUser)
       });
 
-      setNotice('Vendedor creado');
+      setNotice(newUser.role === 'admin' ? 'Administrador creado' : 'Vendedor creado');
       await reload();
     });
 
@@ -857,7 +865,8 @@ export default function App() {
       setNewUser({
         name: '',
         email: '',
-        password: ''
+        password: '',
+        role: 'seller'
       });
 
       setNewSellerModal(false);
@@ -923,6 +932,22 @@ export default function App() {
       setShowEditPassword(false);
     }
   }
+
+  async function saveOwnProfile(e: FormEvent) {
+    e.preventDefault();
+    if (!adminUser()) return;
+    const ok = await run(async () => {
+      const updated = await api<User>('/auth/profile', token, {method:'PATCH', body:JSON.stringify({
+        name:profileDraft.name, email:profileDraft.email,
+        ...(profileDraft.password ? {password:profileDraft.password,currentPassword:profileDraft.currentPassword} : {})
+      })});
+      setUser(updated);
+      setNotice('Perfil actualizado correctamente');
+      await load(updated, token);
+    });
+    if(ok){setProfileModal(false);setProfileDraft({name:'',email:'',currentPassword:'',password:''});}
+  }
+  function adminUser(){return user?.role === 'admin';}
 
   async function changeStatus(
     id: string,
@@ -1091,6 +1116,11 @@ export default function App() {
 
     return matchesSearch && matchesState;
   });
+
+  const inventoryPages = Math.max(1, Math.ceil(visible.length / 15));
+  const actualInventoryPage = Math.min(inventoryPage, inventoryPages);
+  const pagedProducts = visible.slice((actualInventoryPage - 1) * 15, actualInventoryPage * 15);
+  const priceMatches = products.filter(p => (p.code + ' ' + p.name).toLocaleLowerCase('es').includes(priceQuery.trim().toLocaleLowerCase('es')));
 
   const editingProduct = editing
     ? products.find(p => p.id === editing)
@@ -1467,9 +1497,7 @@ export default function App() {
                   aria-label="Buscar producto"
                   placeholder="Buscar producto..."
                   value={search}
-                  onChange={e =>
-                    setSearch(e.target.value)
-                  }
+                  onChange={e => {setSearch(e.target.value);setInventoryPage(1);}}
                 />
               </div>
 
@@ -1501,7 +1529,7 @@ export default function App() {
                         : ''
                     }`}
                     onClick={() =>
-                      setInventoryFilter(key)
+                      (setInventoryFilter(key), setInventoryPage(1))
                     }
                   >
                     {label}
@@ -1529,7 +1557,7 @@ export default function App() {
                   </thead>
 
                   <tbody>
-                    {visible.map(p => {
+                    {pagedProducts.map(p => {
                       const state =
                         p.stock === 0
                           ? 'out'
@@ -1600,6 +1628,11 @@ export default function App() {
                     con la búsqueda o el filtro seleccionado.
                   </p>
                 )}
+              </div>
+              <div className="inventory-pagination">
+                <span>Mostrando {visible.length === 0 ? 0 : (actualInventoryPage-1)*15+1}–{Math.min(actualInventoryPage*15,visible.length)} de {visible.length} productos · Página {actualInventoryPage} de {inventoryPages}</span>
+                <div><button type="button" disabled={actualInventoryPage<=1} onClick={()=>setInventoryPage(p=>Math.max(1,p-1))}>Anterior</button>
+                <button type="button" disabled={actualInventoryPage>=inventoryPages} onClick={()=>setInventoryPage(p=>Math.min(inventoryPages,p+1))}>Siguiente</button></div>
               </div>
             </section>
 
@@ -1837,30 +1870,18 @@ export default function App() {
                 onSubmit={requestPrice}
                 className="grid-form"
               >
-                <label>
-                  Producto
-                  <select
-                    required
-                    value={selected}
-                    onChange={e =>
-                      setSelected(e.target.value)
-                    }
-                  >
-                    <option value="">
-                      Selecciona un producto
-                    </option>
-
-                    {products.map(p => (
-                      <option
-                        key={p.id}
-                        value={p.id}
-                      >
-                        {p.code} — {p.name} (Bs{' '}
-                        {formatMoney(p.price_bob)})
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="price-product-picker">
+                  <label htmlFor="price-product-search">Producto</label>
+                  <button type="button" className="price-selected-button" onClick={()=>setPricePickerOpen(v=>!v)} aria-expanded={pricePickerOpen}>
+                    {products.find(p=>p.id===selected) ? `${products.find(p=>p.id===selected)!.code} — ${products.find(p=>p.id===selected)!.name} (Bs ${formatMoney(products.find(p=>p.id===selected)!.price_bob)})` : 'Selecciona un producto'} <span aria-hidden="true">⌄</span>
+                  </button>
+                  {pricePickerOpen && <div className="price-picker-options">
+                    <input id="price-product-search" autoFocus type="search" placeholder="Buscar por código o nombre…" value={priceQuery} onChange={e=>setPriceQuery(e.target.value)}/>
+                    <div className="price-picker-list" role="listbox" aria-label="Productos disponibles">
+                      {priceMatches.length===0 ? <p className="muted">No se encontraron productos.</p> : priceMatches.map(p=><button type="button" key={p.id} role="option" aria-selected={selected===p.id} onClick={()=>{setSelected(p.id);setPricePickerOpen(false);setPriceQuery('');}}>{p.code} — {p.name} <small>Bs {formatMoney(p.price_bob)}</small></button>)}
+                    </div>
+                  </div>}
+                </div>
 
                 <label>
                   Nuevo precio en Bs
@@ -2042,7 +2063,8 @@ export default function App() {
             ================================== */}
         {view === 'users' && admin && (
           <>
-            <div className="users-action">
+            <div className="users-action users-actions-extended">
+              <button type="button" className="plain-button" onClick={()=>{setProfileDraft({name:user.name,email:user.email,currentPassword:'',password:''});setShowProfilePassword(false);setProfileModal(true);setError('');}}>Editar mi perfil</button>
               <button
                 className="primary"
                 type="button"
@@ -2052,17 +2074,29 @@ export default function App() {
                   setNewUser({
                     name: '',
                     email: '',
-                    password: ''
+                    password: '',
+                    role: 'seller'
                   });
                 }}
               >
-                + Registrar nuevo vendedor
+                + Registrar usuario
               </button>
             </div>
 
+            {profileModal && <Modal title="Editar mi perfil" subtitle="Actualiza tu nombre o correo. Para cambiar la contraseña debes ingresar la actual." busy={busy} close={()=>{setProfileModal(false);setError('');}}>
+              <form className="grid-form" onSubmit={saveOwnProfile}>
+                <label>Nombre<input required maxLength={120} value={profileDraft.name} onChange={e=>setProfileDraft({...profileDraft,name:e.target.value})}/></label>
+                <label>Correo<input required type="email" value={profileDraft.email} onChange={e=>setProfileDraft({...profileDraft,email:e.target.value})}/></label>
+                <label>Contraseña actual (solo si cambias contraseña)<input type={showProfilePassword?'text':'password'} autoComplete="current-password" required={Boolean(profileDraft.password)} value={profileDraft.currentPassword} onChange={e=>setProfileDraft({...profileDraft,currentPassword:e.target.value})}/></label>
+                <label>Nueva contraseña (opcional, mínimo 12 caracteres)<input type={showProfilePassword?'text':'password'} autoComplete="new-password" minLength={12} maxLength={200} value={profileDraft.password} onChange={e=>setProfileDraft({...profileDraft,password:e.target.value})}/></label>
+                <label className="profile-visibility"><input type="checkbox" checked={showProfilePassword} onChange={e=>setShowProfilePassword(e.target.checked)}/> Mostrar contraseñas</label>
+                <div className="form-actions"><button className="primary" disabled={busy}>Guardar perfil</button><button type="button" disabled={busy} onClick={()=>setProfileModal(false)}>Cancelar</button></div>
+              </form>{error&&<p className="modal-alert">{error}</p>}
+            </Modal>}
+
             {newSellerModal && (
               <Modal
-                title="Registrar nuevo vendedor"
+                title="Registrar usuario"
                 subtitle="Completa los datos para crear su cuenta."
                 busy={busy}
                 close={() => {
@@ -2101,6 +2135,12 @@ export default function App() {
                         })
                       }
                     />
+                  </label>
+
+                  <label>Rol de la cuenta
+                    <select value={newUser.role} onChange={e=>setNewUser({...newUser,role:e.target.value as 'seller'|'admin'})}>
+                      <option value="seller">Vendedor</option><option value="admin">Administrador</option>
+                    </select>
                   </label>
 
                   <label>
@@ -2148,7 +2188,7 @@ export default function App() {
                       disabled={busy}
                       className="primary"
                     >
-                      Crear vendedor
+                      Crear {newUser.role === 'admin' ? 'administrador' : 'vendedor'}
                     </button>
 
                     <button
@@ -2322,19 +2362,17 @@ export default function App() {
                         </td>
 
                         <td>
-                          {u.role === 'seller' && (
+                          {(u.role === 'seller' || u.id === user.id) && (
                             <div className="row-actions">
                               <button
                                 className="link"
                                 disabled={busy}
-                                onClick={() =>
-                                  startEditSeller(u)
-                                }
+                                onClick={() => u.role === 'admin' ? (setProfileDraft({name:user.name,email:user.email,currentPassword:'',password:''}),setProfileModal(true),setError('')) : startEditSeller(u)}
                               >
                                 Editar
                               </button>
 
-                              <button
+                              {u.role === 'seller' && <button
                                 className="link"
                                 disabled={busy}
                                 onClick={() => {
@@ -2345,7 +2383,7 @@ export default function App() {
                                 {u.is_active
                                   ? 'Desactivar'
                                   : 'Activar'}
-                              </button>
+                              </button>}
                             </div>
                           )}
                         </td>

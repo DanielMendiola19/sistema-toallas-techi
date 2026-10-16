@@ -442,3 +442,8 @@
     min-width: 76px;
   }
 }
+
+/* Paginación de inventario */
+.inventory-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;color:#806b79;font-size:13px}
+.inventory-pagination>div{display:flex;gap:8px}.inventory-pagination button{border:1px solid #e1cfda;background:#fffafb;color:#79556e;border-radius:10px;padding:10px 15px;font-weight:700}.inventory-pagination button:disabled{opacity:.45}
+@media(max-width:600px){.inventory-pagination{align-items:stretch}.inventory-pagination>div button{flex:1}}

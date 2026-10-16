@@ -57,6 +57,31 @@ authRouter.post('/logout',requireAuth,async(req,res,next)=>{
   res.status(204).send();
  } catch(error) { next(error); }
 });
+// El administrador puede editar únicamente su propio perfil. No puede cambiarse el rol.
+authRouter.patch('/profile',requireAuth,requireAdmin,async(req,res,next)=>{
+ const id=req.currentUser!.id;
+ const {name,email,password,currentPassword}=req.body||{};
+ if(typeof name!=='string'||!name.trim()||name.trim().length>120||typeof email!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())||
+    (password!==undefined&&(typeof password!=='string'||password.length<12||password.length>200||typeof currentPassword!=='string'||!currentPassword))){
+  res.status(422).json({error:'Revisa nombre, correo y contraseña actual (mínimo 12 caracteres para la nueva)'});return;
+ }
+ const conn=await pool.connect();
+ try{
+  await conn.query('BEGIN');
+  const current=await conn.query("SELECT password_hash FROM app_users WHERE id=$1 AND role='admin' AND is_active=true FOR UPDATE",[id]);
+  if(!current.rowCount){await conn.query('ROLLBACK');res.status(404).json({error:'Administrador no encontrado'});return;}
+  if(password!==undefined && !(await verifyPassword(currentPassword,current.rows[0].password_hash))){
+    await conn.query('ROLLBACK');res.status(403).json({error:'La contraseña actual es incorrecta'});return;
+  }
+  const hash=password===undefined?null:await hashPassword(password);
+  const updated=await conn.query(`UPDATE app_users SET name=$1,email=$2,password_hash=COALESCE($3,password_hash)
+   WHERE id=$4 RETURNING id,name,email,role,is_active`,[name.trim(),email.trim().toLowerCase(),hash,id]);
+  if(hash){const token=(req.header('authorization')||'').slice(7);await conn.query('DELETE FROM auth_sessions WHERE user_id=$1 AND token_hash<>$2',[id,tokenHash(token)]);}
+  await conn.query('COMMIT');res.json(updated.rows[0]);
+ }catch(error){await conn.query('ROLLBACK');if((error as {code?:string}).code==='23505'){res.status(409).json({error:'Ese correo ya está registrado'});return;}next(error);}
+ finally{conn.release();}
+});
+
 export const usersRouter = Router();
 usersRouter.use(requireAuth,requireAdmin);
 usersRouter.get('/',async(_req,res,next)=>{
@@ -65,13 +90,14 @@ usersRouter.get('/',async(_req,res,next)=>{
 });
 usersRouter.post('/',async(req,res,next)=>{
  try {
-  const {name,email,password}=req.body||{};
+  const {name,email,password,role='seller'}=req.body||{};
+  if(role!=='admin'&&role!=='seller'){res.status(422).json({error:'Rol inválido'});return;}
   if(typeof name!=='string'||!name.trim()||name.length>120||typeof email!=='string'||!/^\S+@\S+\.\S+$/.test(email)||typeof password!=='string'||password.length<12||password.length>200){
    res.status(422).json({error:'Nombre, correo válido y contraseña de 12 a 200 caracteres obligatorios'});return;
   }
   const passwordHash=await hashPassword(password);
   const result=await pool.query(`INSERT INTO app_users(name,email,password_hash,role)
-   VALUES($1,$2,$3,'seller') RETURNING id,name,email,role,is_active`,[name.trim(),email.trim().toLowerCase(),passwordHash]);
+   VALUES($1,$2,$3,$4) RETURNING id,name,email,role,is_active`,[name.trim(),email.trim().toLowerCase(),passwordHash,role]);
   res.status(201).json(result.rows[0]);
  } catch(error){ if((error as {code?:string}).code==='23505'){res.status(409).json({error:'Ese correo ya existe'});return;} next(error); }
 });

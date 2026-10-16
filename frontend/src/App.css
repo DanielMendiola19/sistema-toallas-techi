@@ -90,3 +90,12 @@ button,input,select,textarea{font:inherit}button{transition:background .18s ease
 @media(max-width:600px){.login-logo{width:min(168px,58%)}.login-card{padding:25px 21px}.mobile-header-logo{width:34px;height:34px}.main{padding:17px 12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stats article{padding:15px 12px}.stats strong{font-size:24px}.panel{border-radius:14px}.topbar-heading h1{font-size:22px}.tablewrap{border-radius:9px}.section-head .primary,.users-action .primary{min-height:44px}.modal-shade{padding:8px}.modal-box{border-radius:16px;max-height:calc(100dvh - 16px)}.sales-total{align-items:flex-start}.sales-total strong{font-size:20px}}
 @media(max-width:380px){.stats{grid-template-columns:1fr}.mobile-header-logo{display:none}.topbar h1{font-size:20px}.login-card{padding:22px 16px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Buscador de precios y perfil de usuario */
+.price-product-picker{position:relative;display:grid;gap:8px;min-width:0;max-width:100%;font-size:13px;font-weight:600;color:#6b5364}
+.price-selected-button{width:100%;min-height:44px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fffdfe;color:#493b42;border:1px solid #dfd0d9;border-radius:11px;padding:12px 13px;font-weight:500}
+.price-picker-options{position:absolute;top:100%;left:0;right:0;z-index:20;background:white;border:1px solid #dfd0d9;border-radius:12px;padding:9px;box-shadow:0 15px 35px #61465c2b;min-width:220px}
+.price-picker-options input{width:100%;padding:11px 12px;border:1px solid #dfd0d9;border-radius:9px}.price-picker-list{max-height:290px;overflow-y:auto;margin-top:7px}
+.price-picker-list button{display:flex;justify-content:space-between;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:white;padding:11px;border-radius:8px;color:#55424f}.price-picker-list button:hover,.price-picker-list button[aria-selected=true]{background:#f7eaf1}.price-picker-list small{white-space:nowrap;color:#936c85}
+.users-actions-extended{gap:10px;flex-wrap:wrap}.profile-visibility{grid-column:1/-1;display:flex!important;align-items:center;gap:9px!important}.profile-visibility input{width:auto!important}
+@media(max-width:600px){.price-picker-options{min-width:0}.users-actions-extended>*{flex:1 1 100%}}
