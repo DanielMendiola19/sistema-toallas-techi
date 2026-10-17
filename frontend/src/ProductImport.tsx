@@ -1,6 +1,7 @@
+import { API } from './apiConfig';
 import { useState, type ChangeEvent } from 'react';
 import './ProductImport.css';
-const API='http://localhost:3000/api';
+
 type ImportRow={row:number;code:string;name:string;price_bob:number;stock:number|null;min_stock:number;exists:boolean};
 type Preview={sheet:string;sheets:string[];sha256:string;total:number;rows:ImportRow[]};
 type Decision={chosen:boolean;stock:string};

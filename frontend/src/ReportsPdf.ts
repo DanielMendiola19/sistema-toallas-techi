@@ -1,9 +1,10 @@
+import { API } from './apiConfig';
 
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import logoUrl from './assets/logo-toallas.jpg';
 
-const API = 'http://localhost:3000/api';
+
 const MAX_PAGES = 500;
 const PRODUCT_LIMIT = 500;
 

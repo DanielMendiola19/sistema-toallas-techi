@@ -1,7 +1,8 @@
+import { API } from './apiConfig';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import './InventoryMovements.css';
 
-const API = 'http://localhost:3000/api';
+
 type Product = {id:string;code:string;name:string;stock:number;min_stock:number};
 type Movement = {id:string;product_id:string;product_code:string;product_name:string;movement_type:string;quantity_delta:number;stock_before:number;stock_after:number;reason:string;created_at:string;performed_by_name:string|null};
 type Page = {items:Movement[];page:number;pages:number;total:number};

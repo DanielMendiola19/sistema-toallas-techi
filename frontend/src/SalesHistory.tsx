@@ -1,8 +1,9 @@
+import { API } from './apiConfig';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import './SalesPanel.css';
 
-const API = 'http://localhost:3000/api';
+
 
 type Sale = {
   id: string;

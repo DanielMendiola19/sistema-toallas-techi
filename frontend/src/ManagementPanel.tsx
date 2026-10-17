@@ -1,6 +1,7 @@
+import { API } from './apiConfig';
 import { useCallback, useEffect, useState } from 'react';
 import './ManagementPanel.css';
-const API='http://localhost:3000/api';
+
 type Paginated<T>={items:T[];page:number;pages:number;total:number};
 type Audit={id:string;created_at:string;action:string;actor_name:string;entity_type:string;entity_id:string|null;details:Record<string,unknown>};
 type Session={id:string;register_name:string;status:'open'|'closed';opened_at:string;closed_at:string|null;closing_limit_at:string;opened_by_name:string;closed_by_name:string|null;opening_cash_bob:string;cash_sales:string;qr_sales:string;transfer_sales:string;other_sales:string;sales_count:number};

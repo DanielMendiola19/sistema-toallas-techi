@@ -1,3 +1,4 @@
+import { API } from './apiConfig';
 
 import { useEffect, useState } from 'react';
 import './GeneralDashboard.css';
@@ -76,7 +77,7 @@ type Props = {
   onNavigate: (view: Destination) => void;
 };
 
-const API = 'http://localhost:3000/api';
+
 
 const money = (value: string | number) =>
   `Bs ${Number(value).toLocaleString('es-BO', {

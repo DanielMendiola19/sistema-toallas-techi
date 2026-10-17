@@ -1,3 +1,4 @@
+import { API, IMAGE_BASE } from './apiConfig';
 
 import {
   useCallback,
@@ -21,8 +22,8 @@ import InventoryMovements from './InventoryMovements';
 import ManagementPanel from './ManagementPanel';
 import ProductImport from './ProductImport';
 
-const API = 'http://localhost:3000/api';
-const IMAGE_BASE = 'http://localhost:3000/product-images';
+
+
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 
 type User = {

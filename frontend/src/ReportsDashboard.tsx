@@ -1,3 +1,4 @@
+import { API } from './apiConfig';
 
 import {
   useCallback,
@@ -58,7 +59,7 @@ type Report = {
 type Period = 'today' | 'week' | 'month' | 'custom';
 type PdfKind = 'sales' | 'inventory';
 
-const API = 'http://localhost:3000/api';
+
 
 const fmt = (value: string | number) =>
   Number(value).toLocaleString('es-BO', {

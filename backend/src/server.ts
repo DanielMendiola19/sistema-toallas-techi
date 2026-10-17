@@ -27,11 +27,18 @@ const PORT = Number(process.env.PORT || 3000);
 
 app.disable('x-powered-by');
 
-app.use(
-  cors({
-    origin: 'http://localhost:5173'
-  })
-);
+// El frontend local y el dominio público publicado en Render.
+// FRONTEND_URL debe contener la URL completa, sin barra final.
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  ...(process.env.FRONTEND_URL || '').split(',').map(s => s.trim()).filter(Boolean)
+]);
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('Origen no permitido por CORS'));
+  }
+}));
 
 // Conservamos el límite de JSON original.
 // Las fotografías usan multipart/form-data.
