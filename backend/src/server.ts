@@ -15,7 +15,7 @@ import { managementRouter } from './management.js';
 import { importProductsRouter } from './importProducts.js';
 
 // NUEVO: ubicación de las fotografías optimizadas.
-import { PRODUCT_IMAGES_DIR } from './productImages.js';
+import { PRODUCT_IMAGES_DIR, storagePublicImageUrl } from './productImages.js';
 
 const app = express();
 
@@ -57,20 +57,27 @@ app.use(
 //
 // Solo los administradores pueden subirlas,
 // reemplazarlas o quitarlas, mediante productsRouter.
-app.use(
-  '/product-images',
-  express.static(PRODUCT_IMAGES_DIR, {
-    index: false,
-    dotfiles: 'deny',
-    maxAge: '1h',
-    setHeaders(res) {
-      res.setHeader(
-        'X-Content-Type-Options',
-        'nosniff'
-      );
-    }
-  })
-);
+// Las rutas de fotos antiguas siguen funcionando sin modificar React.
+// En producción redirigimos hacia las imágenes públicas de Supabase Storage.
+// En desarrollo local, sin configurar Storage, conservamos los archivos locales.
+app.get('/product-images/:key', (req, res, next) => {
+  const key = req.params.key as string;
+  if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.webp$/i.test(key)) {
+    res.status(404).send('Fotografía no encontrada');
+    return;
+  }
+  const url = storagePublicImageUrl(key);
+  if (url) {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.redirect(302, url);
+    return;
+  }
+  next();
+});
+app.use('/product-images', express.static(PRODUCT_IMAGES_DIR, {
+  index: false, dotfiles: 'deny', maxAge: '1h',
+  setHeaders(res) { res.setHeader('X-Content-Type-Options', 'nosniff'); }
+}));
 
 // =============================================
 // ESTADO DEL SERVIDOR - ORIGINAL
