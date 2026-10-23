@@ -30,8 +30,8 @@ inventoryRouter.get('/movements', async (req,res,next) => {
 inventoryRouter.post('/movements', async (req,res,next)=>{
  const {product_id,type,quantity,reason}=req.body ?? {};
  if (!isId(product_id) || !['entry','loss','count'].includes(type) || !Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2147483647 ||
-   (type !== 'count' && quantity === 0) || typeof reason !== 'string' || reason.trim().length < 5 || reason.trim().length > 500) {
-  res.status(422).json({error:'Selecciona un producto, tipo, cantidad válida y motivo de 5 a 500 caracteres'});return;
+   (type !== 'count' && quantity === 0) || (reason != null && (typeof reason !== 'string' || reason.trim().length > 500))) {
+  res.status(422).json({error:'Selecciona un producto, tipo y cantidad válidos (motivo opcional de hasta 500 caracteres)'});return;
  }
  const client=await pool.connect();
  try {
@@ -47,7 +47,7 @@ inventoryRouter.post('/movements', async (req,res,next)=>{
   await client.query('UPDATE products SET stock=$1,updated_at=now() WHERE id=$2',[after,product_id]);
   const saved=await client.query(`INSERT INTO inventory_movements(product_id,movement_type,quantity_delta,stock_before,stock_after,reason,performed_by)
      VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id,stock_before,stock_after,quantity_delta`,
-    [product_id,movementType,delta,before,after,reason.trim(),req.currentUser!.id]);
+    [product_id,movementType,delta,before,after,(reason ?? '').trim(),req.currentUser!.id]);
   await client.query('COMMIT');
   res.status(201).json(saved.rows[0]);
  }catch(error){await client.query('ROLLBACK');next(error);}finally{client.release();}

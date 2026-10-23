@@ -16,6 +16,10 @@ export const productsRouter = Router();
 
 productsRouter.use(requireAuth);
 
+// Express 5 permite que los parámetros sean string o string[]; validamos su tipo.
+const isProductId = (id: unknown): id is string =>
+  typeof id === 'string' && /^\d+$/.test(id);
+
 // Se agrega image_key al listado original.
 const FIELDS =
   'id, code, name, price_bob, stock, min_stock, is_active, image_key, created_at, updated_at';
@@ -154,7 +158,9 @@ productsRouter.get('/', async (req, res) => {
            $2::boolean = FALSE
            OR stock <= min_stock
          )
-       ORDER BY name ASC, id ASC
+       ORDER BY lower(regexp_replace(code, '[0-9]+$', '')) ASC,
+                CASE WHEN code ~ '[0-9]+$' THEN (substring(code FROM '([0-9]+)$'))::numeric ELSE NULL END ASC NULLS LAST,
+                upper(code) ASC, id ASC
        LIMIT 500`,
       [q, low]
     );
@@ -163,6 +169,31 @@ productsRouter.get('/', async (req, res) => {
   } catch (error) {
     fail(res, error);
   }
+});
+
+// Administradores pueden consultar productos archivados para restaurarlos.
+productsRouter.get('/inactive', requireAdmin, async (_req, res) => {
+  try {
+    const data = await pool.query(`SELECT ${FIELDS} FROM products
+      WHERE is_active=FALSE
+      ORDER BY lower(regexp_replace(code, '[0-9]+$', '')) ASC,
+        CASE WHEN code ~ '[0-9]+$' THEN (substring(code FROM '([0-9]+)$'))::numeric ELSE NULL END ASC NULLS LAST,
+        upper(code) ASC, id ASC`);
+    res.json(data.rows);
+  } catch (error) { fail(res, error); }
+});
+
+// Restaurar sin borrar historial, ventas ni fotografías.
+productsRouter.patch('/:id/status', requireAdmin, async (req, res) => {
+  if (!isProductId(req.params.id)) return res.status(400).json({error:'ID inválido'});
+  if (typeof req.body?.is_active !== 'boolean') return res.status(422).json({error:'Estado inválido'});
+  try {
+    const result = await pool.query(`UPDATE products SET is_active=$1,updated_at=NOW()
+      WHERE id=$2 AND is_active IS DISTINCT FROM $1 RETURNING ${FIELDS}`,
+      [req.body.is_active,req.params.id]);
+    if (!result.rowCount) return res.status(404).json({error:'Producto no encontrado o ya tiene ese estado'});
+    res.json(result.rows[0]);
+  } catch(error) { fail(res,error); }
 });
 
 // =============================================
@@ -257,7 +288,7 @@ productsRouter.put(
   '/:id',
   requireAdmin,
   async (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
+    if (!isProductId(req.params.id)) {
       return res.status(400).json({
         error: 'ID inválido'
       });
@@ -361,7 +392,7 @@ productsRouter.delete(
   '/:id',
   requireAdmin,
   async (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
+    if (!isProductId(req.params.id)) {
       return res.status(400).json({
         error: 'ID inválido'
       });
@@ -471,7 +502,7 @@ productsRouter.post(
   requireAdmin,
   receiveImage,
   async (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
+    if (!isProductId(req.params.id)) {
       return res.status(400).json({
         error: 'ID inválido'
       });
@@ -582,7 +613,7 @@ productsRouter.delete(
   '/:id/image',
   requireAdmin,
   async (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
+    if (!isProductId(req.params.id)) {
       return res.status(400).json({
         error: 'ID inválido'
       });
@@ -656,7 +687,7 @@ productsRouter.delete(
 productsRouter.get(
   '/:id/movements',
   async (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
+    if (!isProductId(req.params.id)) {
       return res.status(400).json({
         error: 'ID inválido'
       });

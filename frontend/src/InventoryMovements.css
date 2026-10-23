@@ -1,3 +1,18 @@
 .inventory-movements{min-width:0}.movement-header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px}.movement-header .muted{margin:7px 0 0}.movement-header h2{margin:0}.movement-filter{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.movement-filter label{font-weight:650;font-size:13px}.movement-filter select,.movement-form select,.movement-form input,.movement-form textarea{background:var(--surface,#fff);color:inherit;border:1px solid #ddced8;border-radius:12px;padding:12px 13px;min-width:0;width:100%;outline-color:#956f87}.movement-filter select{max-width:360px}.movement-form{display:grid;gap:15px}.movement-form label{font-size:13px;font-weight:650;display:grid;gap:7px}.movement-form textarea{resize:vertical}.movement-preview{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f7eff3;padding:14px;border:1px solid #eadbe4;border-radius:12px}.movement-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:20px;font-size:13px;color:#806b79}.movement-pagination>div{display:flex;gap:8px}.movement-pagination button{background:#fff;border:1px solid #ddced8;border-radius:10px;padding:10px 14px;color:#785269;font-weight:700}.movement-pagination button:disabled{opacity:.45;cursor:not-allowed}.movement-tag{display:inline-block;padding:6px 10px;border-radius:20px;background:#f1e9ed;color:#76596b;font-weight:650;font-size:12px}.movement-tag.positive{background:#e7f5e8;color:#256943}.movement-tag.negative{background:#fff1e5;color:#9b5d25}.movement-positive{color:#287344;font-weight:750}.movement-negative{color:#a34c39;font-weight:750}.movement-code{display:block;font-size:11px;margin-top:3px;opacity:.72}.movement-reason{white-space:normal;min-width:160px;max-width:350px}.movement-form .confirm-actions{margin-top:5px}@media(max-width:650px){.movement-header{align-items:stretch;flex-direction:column}.movement-header button,.movement-filter select{width:100%;max-width:none}.movement-filter{display:block}.movement-filter label{display:block;margin-bottom:8px}.movement-preview{flex-direction:column}.movement-pagination{align-items:stretch;flex-direction:column}.movement-pagination>div button{flex:1}}
 
 .stock-edit-note{grid-column:1/-1;padding:12px 14px;border:1px solid #e6d9df;background:#f9f0f4;border-radius:12px;color:#765969;font-size:13px}
+
+/* Buscador accesible en el modal de registrar movimientos */
+.movement-product-picker{position:relative;min-width:0}
+.movement-picker-trigger{width:100%;display:flex;justify-content:space-between;gap:12px;text-align:left;background:#fffdfd;border:1px solid #ddced8;border-radius:12px;padding:12px 13px;color:#493b42}
+.movement-picker-menu{position:relative;z-index:10;background:#fff;border:1px solid #ddced8;border-radius:12px;padding:8px;margin-top:6px;box-shadow:0 9px 24px #5e44521a}
+.movement-picker-menu input{width:100%;background:#fff;border:1px solid #ddced8;border-radius:9px;padding:10px}
+.movement-picker-results{max-height:240px;overflow-y:auto;margin-top:6px}
+.movement-picker-results button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:10px;border:0;border-radius:7px;text-align:left;background:transparent;color:#4c3e47}
+.movement-picker-results button:hover,.movement-picker-results button[aria-selected="true"]{background:#f8eef4}
+.movement-picker-results small{white-space:nowrap;color:#927584}
+
+/* El selector interactivo no debe quedar dentro de un <label> HTML:
+   al elegir una opción, el navegador reactivaba el selector. */
+.movement-product-field{display:grid;gap:7px;min-width:0}
+.movement-product-label{font-size:13px;font-weight:650}

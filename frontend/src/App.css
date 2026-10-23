@@ -99,3 +99,14 @@ button,input,select,textarea{font:inherit}button{transition:background .18s ease
 .price-picker-list button{display:flex;justify-content:space-between;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:white;padding:11px;border-radius:8px;color:#55424f}.price-picker-list button:hover,.price-picker-list button[aria-selected=true]{background:#f7eaf1}.price-picker-list small{white-space:nowrap;color:#936c85}
 .users-actions-extended{gap:10px;flex-wrap:wrap}.profile-visibility{grid-column:1/-1;display:flex!important;align-items:center;gap:9px!important}.profile-visibility input{width:auto!important}
 @media(max-width:600px){.price-picker-options{min-width:0}.users-actions-extended>*{flex:1 1 100%}}
+
+/* Acciones de producto y acceso a archivados */
+.inventory-page .inventory-table td:last-child{white-space:nowrap}
+.inventory-page .inventory-table td:last-child button{margin-right:9px}
+.inactive-toggle{margin-bottom:12px;border:1px solid #dfcbd8;background:#fbf4f8;color:#7b536e;border-radius:10px;padding:10px 14px;font-weight:700}
+.inactive-toggle.is-active{background:#916c84;color:white}
+
+/* Acciones de Inventario: botones juntos, alineados hacia la derecha. */
+.inventory-page .inventory-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-left:auto;flex-wrap:wrap}
+.inventory-page .inventory-heading-actions>.primary{margin-left:0;white-space:nowrap}
+@media(max-width:600px){.inventory-page .inventory-heading-actions{width:100%;margin-left:0}.inventory-page .inventory-heading-actions>.primary{flex:1 1 190px;white-space:normal}}

@@ -42,6 +42,7 @@ type Product = {
   stock: number;
   min_stock: number;
   image_key?: string | null;
+  is_active?: boolean;
 };
 
 type PriceRequest = {
@@ -373,6 +374,10 @@ export default function App() {
   const [inventoryFilter, setInventoryFilter] =
     useState<InventoryFilter>('all');
   const [inventoryPage, setInventoryPage] = useState(1);
+  const [inactiveProducts,setInactiveProducts]=useState<Product[]>([]);
+  const [showInactive,setShowInactive]=useState(false);
+  const [movementOpen,setMovementOpen]=useState(false);
+  const [productStatusTarget,setProductStatusTarget]=useState<Product | null>(null);
   const [priceQuery, setPriceQuery] = useState('');
   const [pricePickerOpen, setPricePickerOpen] = useState(false);
   const [profileModal, setProfileModal] = useState(false);
@@ -664,6 +669,22 @@ export default function App() {
     setError('');
   }
 
+  async function loadInactiveProducts(){
+    if(user?.role!=='admin')return;
+    const result=await api<Product[]>('/products/inactive',token);
+    setInactiveProducts(result);
+  }
+  async function setProductActiveStatus(product:Product,active:boolean){
+    const ok=await run(async()=>{
+      await api(`/products/${product.id}/status`,token,{method:'PATCH',body:JSON.stringify({is_active:active})});
+      await reload();
+      await loadInactiveProducts();
+      setInventoryPage(1);
+      setNotice(active?'Producto habilitado nuevamente':'Producto desactivado correctamente');
+    });
+    if(ok)setProductStatusTarget(null);
+  }
+
   async function saveProduct(e: FormEvent) {
     e.preventDefault();
 
@@ -683,6 +704,11 @@ export default function App() {
       ) {
         throw Error('Revisa precio y cantidades');
       }
+
+      // El índice de PostgreSQL es la protección definitiva, incluso contra
+      // cargas simultáneas e importaciones de Excel.
+      const duplicate=products.some(p=>p.id!==editing && p.code.trim().toUpperCase()===draft.code.trim().toUpperCase()) || inactiveProducts.some(p=>p.id!==editing && p.code.trim().toUpperCase()===draft.code.trim().toUpperCase());
+      if(duplicate)throw Error('Ya existe un producto con ese código (activo o desactivado)');
 
       // Conserva la creación y edición originales.
       const saved = await api<Product>(
@@ -1092,7 +1118,8 @@ export default function App() {
     ).length
   };
 
-  const visible = products.filter(p => {
+  const inventoryBase=showInactive ? inactiveProducts : products;
+  const visible = inventoryBase.filter(p => {
     const matchesSearch = (
       p.code + ' ' + p.name
     ).toLowerCase().includes(
@@ -1118,6 +1145,8 @@ export default function App() {
     return matchesSearch && matchesState;
   });
 
+  // La búsqueda se hace antes de paginar y el orden numérico evita A10 antes de A2.
+  visible.sort((a,b)=>a.code.localeCompare(b.code,'es',{numeric:true,sensitivity:'base'}));
   const inventoryPages = Math.max(1, Math.ceil(visible.length / 15));
   const actualInventoryPage = Math.min(inventoryPage, inventoryPages);
   const pagedProducts = visible.slice((actualInventoryPage - 1) * 15, actualInventoryPage * 15);
@@ -1485,13 +1514,14 @@ export default function App() {
                 </div>
 
                 {admin && (
-                  <button
-                    className="primary"
-                    type="button"
-                    onClick={addProduct}
-                  >
-                    + Agregar nuevo producto
-                  </button>
+                  <div className="inventory-heading-actions">
+                    <button type="button" className="primary" onClick={() => setMovementOpen(true)}>
+                      + Registrar movimiento
+                    </button>
+                    <button className="primary" type="button" onClick={addProduct}>
+                      + Agregar nuevo producto
+                    </button>
+                  </div>
                 )}
 
                 <input
@@ -1502,8 +1532,9 @@ export default function App() {
                 />
               </div>
 
+              {admin && <button type="button" className={`inventory-filter-button inactive-toggle ${showInactive?'is-active':''}`} onClick={()=>{if(!showInactive)void loadInactiveProducts().catch(e=>setError(e instanceof Error?e.message:'Error al cargar desactivados'));setShowInactive(v=>!v);setInventoryFilter('all');setInventoryPage(1)}}>{showInactive?'← Productos activos':'Productos desactivados'}</button>}
               {/* FILTROS RÁPIDOS */}
-              <div
+              {!showInactive&&<div
                 className="inventory-quickfilters"
                 role="group"
                 aria-label="Filtrar productos por existencias"
@@ -1540,7 +1571,7 @@ export default function App() {
                     </span>
                   </button>
                 ))}
-              </div>
+              </div>}
 
               {/* TABLA DE INVENTARIO */}
               <div className="tablewrap">
@@ -1607,14 +1638,8 @@ export default function App() {
 
                           {admin && (
                             <td>
-                              <button
-                                className="link"
-                                onClick={() =>
-                                  editProduct(p)
-                                }
-                              >
-                                Editar
-                              </button>
+                              {!showInactive&&<button className="link" type="button" onClick={()=>editProduct(p)}>Editar</button>}
+                              <button className="link" type="button" onClick={()=>setProductStatusTarget(p)}>{showInactive?'Habilitar':'Desactivar'}</button>
                             </td>
                           )}
                         </tr>
@@ -1637,6 +1662,8 @@ export default function App() {
               </div>
             </section>
 
+            {admin && movementOpen && <InventoryMovements token={token} mode="form" onChanged={reload} onClose={()=>setMovementOpen(false)}/>}
+            {admin && productStatusTarget && <Modal title={productStatusTarget.is_active===false?'¿Habilitar producto?':'¿Desactivar producto?'} subtitle={`Producto: ${productStatusTarget.code} — ${productStatusTarget.name}. Se conservará su historial.`} close={()=>setProductStatusTarget(null)} busy={busy}><div className="confirm-actions"><button type="button" className="plain-button" disabled={busy} onClick={()=>setProductStatusTarget(null)}>Cancelar</button><button type="button" className={productStatusTarget.is_active===false?'primary':'danger-button'} disabled={busy} onClick={()=>void setProductActiveStatus(productStatusTarget,productStatusTarget.is_active===false)}>{productStatusTarget.is_active===false?'Sí, habilitar':'Sí, desactivar'}</button></div></Modal>}
             {/* MODAL PARA CREAR O EDITAR PRODUCTO */}
             {admin && productModal && (
               <Modal
